@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+/*How to run: In folder of program: 
+pkg-config --libs gsl (tells us what flags to include)
+g++ XXX.cpp -  -  -  -o XXX  (include flags from previous lines)
+INFO ./XXX (executable file)       */
+
+=======
+>>>>>>> 1716fbf8005766832184926b8cf8eeea5073d5ed
 #include   <stdlib.h>
 #include   <stdio.h>
 #include   <math.h>
