@@ -11,6 +11,15 @@
 
 using namespace std;
 /* #define SIMPLE_SPRNG		 simple interface                         */
+// #include "sprng.h"
+/* SPRNG header file     see NSCA random number generator   library   *** */
+
+
+/* For the definition of gamma, dgamma etc, please
+   see our JCP paper  */
+
+
+
 
 // Monte Carlo Sampling -------------------------------------------------
 

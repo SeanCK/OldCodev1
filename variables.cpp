@@ -3,8 +3,8 @@
 #include   <math.h>
 #include   <iostream>
 #include   <complex>
-#include   "dmatrix.c"
-#include   "imatrix.c"
+#include   <numeric>
+
 
 using namespace std;
 
@@ -49,9 +49,9 @@ double dot(double *r1, double *r2){
     double x;
     int i;
 
-    for (i=0, x = 0.0; i < N_bath; i++)
+    for (i=0, x = 0.0; i < N_bath; i++){
         x += r1[i]*r2[i];
-
+	}
     return x;
 
 }
@@ -63,13 +63,12 @@ double gam(double *R){
     double x;
     int i;
 
-    for (i = 0, x = 0.0; i < N_bath; i++)
+    for (i = 0, x = 0.0; i < N_bath; i++){
         x += c[i]*R[i];
+	}
     x += asyEps;    // asymmetric spin boson
 
     return -x;
-
-
 }
 
 
@@ -80,12 +79,10 @@ double Hb(double *R, double *P){
 
     /* Bath Hamiltonian */
 
-    for (i = 0, x = 0.0; i < N_bath; i++)
+    for (i = 0, x = 0.0; i < N_bath; i++){
         x += P[i]*P[i] - mww[i]*R[i]*R[i];
-
-    return x/2.0;
-
-
+	}
+    return x*0.5;
 }
 
 
@@ -93,9 +90,9 @@ void dgamma(double *R){
 
     int i;
 
-    for (i = 0; i < N_bath; i++)
+    for (i = 0; i < N_bath; i++){
         dgam[i] = -c[i];
-
+	}
 }
 
 void Fb(double *R){
@@ -105,9 +102,9 @@ void Fb(double *R){
     int i;
     double x;
 
-    for (i= 0; i < N_bath; i++)
+    for (i= 0; i < N_bath; i++){
         f[i] = mww[i]*R[i];
-
+	}
 }
 
 
@@ -137,10 +134,11 @@ void F2(double *R){
     g = gam(R);
     h = g/sqrt(ddd4 + g*g);
 
-    for (i = 0; i< N_bath; i++)
+    for (i = 0; i< N_bath; i++){
         f[i] = mww[i]*R[i] + h*c[i];
-
+	}
 }
+
 
 double dE(double *R){
 
@@ -154,7 +152,6 @@ double dE(double *R){
     return (sqrt(ddd + g));
 
     /* This is E1 - E0   ok */
-
 }
 
 
@@ -170,6 +167,7 @@ double G(double *R){
     return x;
 
 }
+
 
 void dd(double*R){
 
@@ -200,170 +198,100 @@ void dd(double*R){
            -------------------------------------------------------------- */
     }
 
+
+
 /* ************** Observables and initial density Matrices *********  */
+
+/* A load of pointers initial densities and observables ********** 
+	makes code changes easier   */
+double (*phi)(double*, double*, int);
+double (*dens_init[4])(double*, double*, int);
+double (*obs[4])(double*, double*, int);
+double (*obs1[4])(double*, double*, int);
+double (*www[6][4][4])();
+
+
 
 /* Definition of initial density matrix element */
 
 
 double wigner_harm_osc(double *x, double *p){
-
-    double prod,y1,y2;
-
-    int i;
-
     /* set wigner to one has it drops out of calculation for our initial
     density */
-
     return 1.0;
-
-
 }
 
+
+/*Initial Densities */
+/*Can all be parallized*/
+
+
+double z;
+double g=G(x);
+double gg=g*g;
 
 
 double dens_init_0(double *x,double *p, int k){
-
-    double z;
-    double g,gg;
-    g = G(x); gg = g*g;
-    z = 0.5*(1.0 + 2.0*g + gg)/(1 + gg);
-
-    return (z*wigner_harm_osc(x,p));
-
-
+	z = 0.5*(1.0 + 2.0*g + gg)/(1 + gg);
+	return (z*wigner_harm_osc(x,p));
 }
 
+
 double dens_init_1(double *x,double *p, int k){
-
-
-    double z;
-    double g,gg;
-
-    g = G(x); gg = g*g;
-    z = 0.5*(gg - 1.0)/(1 + gg);
-
-    return (z*wigner_harm_osc(x,p));
-
+	z = 0.5*(gg - 1.0)/(1 + gg);
+	return (z*wigner_harm_osc(x,p));
 }
 
 double dens_init_2(double *x,double *p, int k){
-
-    double z;
-    double g, gg;
-
-
-    g = G(x); gg = g*g;
-    z = 0.5*(gg - 1.0)/(1 + gg);
-
-
-    return (z*wigner_harm_osc(x,p));
-
+	z = 0.5*(gg - 1.0)/(1 + gg);
+	return (z*wigner_harm_osc(x,p));
 }
 
 double dens_init_3(double *x,double *p, int k){
-
-    double z;
-    double g,gg;
-
-    g = G(x); gg = g*g;
-    z = 0.5*(gg - 2*g  + 1.0)/(1 + gg);
-
-    return (z*wigner_harm_osc(x,p));
-
-
+	z = 0.5*(gg - 2*g  + 1.0)/(1 + gg);
+	return (z*wigner_harm_osc(x,p));
 }
 
+
+
 double obs_0(double *x,double *p, int k){
-
-
-    double z;
-    double g,gg;
-
-    g = G(x); gg = g*g;
-    z = 2.0*g/(1 + gg);
-    return z;
-
+	z = 2.0*g/(1 + gg);
+	return z;
 }
 
 double obs_1(double *x,double *p, int k){
-
-
-    double z;
-    double g,gg;
-
-    g = G(x); gg = g*g;
-    z = (gg-1)/(1 + gg);
-    return z;
-
+	z = (gg-1)/(1 + gg);
+	return z;
 }
 
 double obs_2(double *x,double *p, int k){
-
-
-    double z;
-    double g, gg;
-
-    g = G(x); gg = g*g;
-    z =  (gg-1)/(1 + gg);
-    return z;
-
+	z =  (gg-1)/(1 + gg);
+	return z;
 }
 
 double obs_3(double *x,double *p, int k){
-
-
-    double z;
-    double g,gg;
-
-    g = G(x); gg = g*g;
     z = -2.0*g/(1 + gg);
     return z;
-
 }
+
+
 
 /* These are the matrix elements of the Hamiltonian */
 
 double H_0(double *x,double *p, int k){
-
-
-    double z;
-    double g,gg;
-
-    z = Hb(x,p) - dE(x)/2.0;
-    return z;
-
-
+	z = Hb(x,p) - dE(x)/2.0;
+	return z;
 }
 
-
-
 double H_1(double *x,double *p, int k){
-
-    double z;
-    double g,gg;
-    return 0.0;
-
+	return 0.0;
 }
 
 double H_2(double *x,double *p, int k){
-
-    double z;
-    double g, gg;
-    return 0.0;
-
-
+	return 0.0;
 }
 
 double H_3(double *x,double *p, int k){
-
-
-    double z;
-    double g,gg;
-
-    z = Hb(x,p) + dE(x)/2.0;
-    return z;
-
+	z = Hb(x,p) + dE(x)/2.0;
+	return z;
 }
-
-
-

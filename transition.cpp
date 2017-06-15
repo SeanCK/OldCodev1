@@ -3,11 +3,8 @@
 #include   <math.h>
 #include   <iostream>
 #include   <complex>
-#include   "dmatrix.c"
-#include   "imatrix.c"
 #include   "variables.cpp"
-#include   "random.cpp"
-#include   "main.cpp"
+
 
 using namespace std;
 

@@ -3,8 +3,8 @@
 #include   <math.h>
 #include   <iostream>
 #include   <complex>
-#include   "dmatrix.c"
-#include   "imatrix.c"
+#include   "variables.cpp"
+
 
 using namespace std;
 /* #define SIMPLE_SPRNG		 simple interface                         */
@@ -50,7 +50,6 @@ void randnums(int rand_dim,double  *rand_vec){
 
     for (i = 0; i < rand_dim; i++){
         rand_vec[i] = gsl_rng_uniform (rr);
-
     }
 }
 
@@ -73,5 +72,4 @@ void gauss_init_W(double *R, double *v){
         R[i] = gauss1(mean_x, sigma_x,i);
         v[i] = gauss1(mean_v, sigma_v,i + 2*N_bath);
     }
-
 }
