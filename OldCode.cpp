@@ -89,7 +89,7 @@ double  gauss1(double mean_x, double sigma_x,int i){
 
 double dE(double *R);
 
-void randnums(int rand_dim,double  *rand_vec){
+void randnums(int rand_dim, double  *rand_vec){
 
     int i;
 
@@ -1805,7 +1805,7 @@ double obs_2(double *x,double *p, int k){
 
 }
 
-double obs_3(double *x,double *p, int k){
+double obs_3(double *x ,double *p, int k){
 
 
     double z;

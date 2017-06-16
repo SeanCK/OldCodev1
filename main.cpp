@@ -5,23 +5,27 @@
 #include   <complex>
 #include   "dmatrix.c"
 #include   "imatrix.c"
-#include   "variables.cpp"
-#include   "random.cpp"
-#include   "transition.cpp"
+#include   "omp.h"
+#include "variables.cpp"
 
-using namespace std;
-/* #define SIMPLE_SPRNG		 simple interface                         */
+#ifndef random.cpp
+#define random.cpp
+#endif
 
-// Monte Carlo Sampling -------------------------------------------------
 
-int monte(int NN_sample,double *x, double *p){
+using namespace std;  //considered bad practice bc namespace can overlap
+
+#include <gsl/gsl_rng.h>
+
+
+int monte(int NN_sample,double *x, double *p){ //Makes all 4 variables = 0?
 
     int i, j,k,flag,sl;
     double y,l;
 
     /* This section calls slice algorithm, and prints results  */
     for (i = 0; i < N_slice; i++){
-        abszsum1[i] = 0.0;
+        abszsum1[i]  = 0.0;
         argzsum1[i]  = 0.0;
         habszsum1[i] = 0.0;
         hargzsum1[i] = 0.0;
@@ -47,9 +51,6 @@ int monte(int NN_sample,double *x, double *p){
 
 }
 
-/* ______________________________________   */
-
-/* ************** Observables and initial density Matrices *********  */
 
 
 int main(int argc, char *argv[]){
@@ -222,5 +223,4 @@ int main(int argc, char *argv[]){
     free(mu);free(sig); free(mww);free(dtdtm); free(meann);
 
     return 0;
-
-}
+    }
