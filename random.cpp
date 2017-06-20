@@ -22,7 +22,7 @@ using namespace std;
 /* Random number stuff ***************************************************************  */
 
 
-double  gauss1(double mean_x, double sigma_x,int i){
+double  gauss1(double mean_x, double sigma_x, int i){
 
     double x1,y1,y2,y3;
 
@@ -30,26 +30,20 @@ double  gauss1(double mean_x, double sigma_x,int i){
 
     y1 = ranVector[i];
 
-    if (fabs(y1) < 1.0e-200){
-        y1 = gsl_rng_uniform (rr);
-        if (fabs(y1) < 1.0e-200)
-            y1 = (gsl_rng_uniform (rr));
-        if (fabs(y1) < 1.0e-200)
-            y1 = (gsl_rng_uniform (rr));
-        if (fabs(y1) < 1.0e-200)
-            y1 = gsl_rng_uniform (rr);
+    while(fabs(y1) < 1.0e-200){
+        y1 = (gsl_rng_uniform (rr));
     }
-
+    
     y2 = ranVector[i+N_bath];
     y3 = sqrt(-2*log(y1));
     x1 = y3*cos(2*PI*y2);
-    return (mean_x =sigma_x*x1);
+    return (mean_x = sigma_x*x1);
 
 }
 
 double dE(double *R);
 
-void randnums(int rand_dim,double  *rand_vec){
+void randnums(int rand_dim, double *rand_vec){
 
     int i;
 
@@ -75,8 +69,8 @@ void gauss_init_W(double *R, double *v){
         mean_v = 0;
         sigma_v = sig[i+N_bath];
         // sigma_v = 1.0;
-        R[i] = gauss1(mean_x, sigma_x,i);
-        v[i] = gauss1(mean_v, sigma_v,i + 2*N_bath);
+        R[i] = gauss1(mean_x, sigma_x, i);
+        v[i] = gauss1(mean_v, sigma_v, i + 2*N_bath);
     }
 
 }
