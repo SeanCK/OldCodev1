@@ -3,21 +3,16 @@
 #include   <math.h>
 #include   <iostream>
 #include   <complex>
-#include   "dmatrix.c"
-#include   "imatrix.c"
-#include   "variables.cpp"
-#include   "transition.cpp"
-#include   "main.cpp"
-
-
+//#include   "random.h"
+#include   "variable.h"
 
 using namespace std;
-/* #define SIMPLE_SPRNG		 simple interface                         */
-// #include "sprng.h"
-/* SPRNG header file     see NSCA random number generator   library   *** */
+
 #include <gsl/gsl_rng.h>
 
 #define PI 3.141592653589793
+
+double ranVector[10001];
 
 /* Random number stuff ***************************************************************  */
 
@@ -46,8 +41,6 @@ double  gauss1(double mean_x, double sigma_x,int i){
     return (mean_x =sigma_x*x1);
 
 }
-
-double dE(double *R);
 
 void randnums(int rand_dim,double  *rand_vec){
 
