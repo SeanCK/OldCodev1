@@ -9,38 +9,31 @@ using namespace std;
 
 #include <gsl/gsl_rng.h>
 
-
-
-
-double gam(double *R){
+double gam(double *R){ //depends on coords. of bath
 
     double asyEps = 0.4;
     double x;
     int i;
 
     for (i = 0, x = 0.0; i < N_bath; i++)
-        x += c[i]*R[i];
+        x += c[i]*R[i]; // - coupling potential energy ('02 after eq32)
     x += asyEps;    // asymmetric spin boson
-
     return -x;
 }
 
 
-double Hb(double *R, double *P){
+double Hb(double *R, double *P){ /* Bath Hamiltonian */ //pure harmonic oscillator
 
     double x;
     int i;
 
-    /* Bath Hamiltonian */
-
     for (i = 0, x = 0.0; i < N_bath; i++)
         x += P[i]*P[i] - mww[i]*R[i]*R[i];
-
     return x/2.0;
 }
 
 
-void dgamma(double *R){
+void dgamma(double *R){ //derivative of gam - may not want to assume bath is harmonic
 
     int i;
 
@@ -48,9 +41,7 @@ void dgamma(double *R){
         dgam[i] = -c[i];
 }
 
-void Fb(double *R){
-
-    /* Pure Bath Force Field */
+void Fb(double *R){ /* Pure Bath Force Field */ // '02 eq 38
 
     int i;
     double x;
@@ -59,12 +50,10 @@ void Fb(double *R){
         f[i] = mww[i]*R[i];
 }
 
-void F1(double *R){
+void F1(double *R){ /* 00 force field  */  //'02 eq 39.1
 
     int i;
     double g,h;
-
-    /* 00 force field   */
 
     g = gam(R);
     h = g/sqrt(ddd4 + g*g);
@@ -74,12 +63,10 @@ void F1(double *R){
     /* ok  note mww[i] = - m*w[i]*w[i] as calculated in main */
 }
 
-void F2(double *R){
+void F2(double *R){ /* 11 force field */ // '02 eq 39.2
 
     int i;
     double g,h;
-
-    /* 11 force field */
 
     g = gam(R);
     h = g/sqrt(ddd4 + g*g);
@@ -88,23 +75,17 @@ void F2(double *R){
         f[i] = mww[i]*R[i] + h*c[i];
 }
 
-double dE(double *R){
+double dE(double *R){ /* Energy difference between adibiatic surface (E1 - E0) */
 
     double g;
-
-    /* Energy difference between adibiatic surface (E1 - E0) */
-
 
     g = gam(R);
     g *= 4.0*g;
     return (sqrt(ddd + g));
-
-    /* This is E1 - E0   ok */
-
 }
 
 
-double G(double *R){
+double G(double *R){ // '02 eq 40
 
     double x,g;
 
@@ -112,18 +93,15 @@ double G(double *R){
     if (fabs(g/delta) < 1.0e-7)
         return (g/delta);
     x = (-delta + sqrt(ddd + 4*g*g))/(2*g);
-
     return x;
-
 }
 
-void dd(double*R){
+void dd(double*R){ //non-adiabatic coupling matrix
 
     double x1,x2,x3;
     int i;
 
     /* Computing d = <1|d/dr|0>  */
-
     x2 = gam(R);
     dgamma(R);
     if ( fabs(x2) < 1.0e-4)
@@ -133,8 +111,8 @@ void dd(double*R){
         x3 = -x1/x2 + 2.0/(delta + 2.0*x2*x1);
         x3 = x3/(1.0 + x1*x1);
     }
-    for (i = 0,abs_d = 0.0; i < N_bath; i++){
-        dhat[i] = -dgam[i]*x3;   // 1-3-05 put - sign in
+    for (i = 0, abs_d = 0.0; i < N_bath; i++){
+        dhat[i] = -dgam[i]*x3;
         abs_d += dhat[i]*dhat[i];
     }
     abs_d = sqrt(abs_d);
@@ -142,11 +120,10 @@ void dd(double*R){
         dhat[i] /= abs_d;
     /* Note may need to change the sign of dhat here
 
-    /* dhat now is not normalized, and equal d_{10}(R)
-       -------------------------------------------------------------- */
+    /* dhat now is not normalized, and equal d_{10}(R) */
 }
 
-void integ_step(double *r, double *v, double dt, int Sa){
+void integ_step(double *r, double *v, double dt, int Sa){ //classical propagator
 
     /* ********* Velocity Verlet ************************** */
 
@@ -158,10 +135,10 @@ void integ_step(double *r, double *v, double dt, int Sa){
         r[i] += dt*v[i] + y*f[i];
     y = 0.5*dt;
     for (i = 0; i < N_bath; i++)
-        v[i] +=   y*f[i];
-    force[Sa](r);
+        v[i] += y*f[i];
+    force[Sa](r); //Hellman-Feynman Forces
     for (i = 0; i < N_bath; i++)
-        v[i] +=   y*f[i];
+        v[i] += y*f[i];
 }
 
 
@@ -182,9 +159,9 @@ void bath_para(double eta, double w_max){
 }
 
 
-double U( double *r,double *v, int Sa, double t){
+double U( double *r,double *v, int Sa, double t){ //propagator //exp(+-iLdel)
 
-    double  dE0, phase,dt,x1,x2,x3,v1,v2,v3;
+    double  dE0, phase, dt, x1, x2, x3, v1, v2, v3;
     int Nsteps, i;
 
     /* ******** Adiabatic Propagator *********************  */
@@ -202,18 +179,19 @@ double U( double *r,double *v, int Sa, double t){
         dt = t/Nsteps;
     }
 
-    if ( (Sa == 0) || (Sa == 3)){
+    if ((Sa == 0) || (Sa == 3)){
         for (i = 0; i < Nsteps; i++){
             integ_step(r , v,  dt, Sa);
         }
         return 0.0;
     }
-    phase = dE(r)/2;
+    //collecting phase info from H-F forces
+    phase = dE(r)*0.5;
     for (i = 0; i < Nsteps; i++){
         integ_step(r , v,  dt, Sa);
         phase += dE(r);
     }
-    phase -=dE(r)/2;
+    phase -=dE(r)*0.5;
     phase*= dt;
 
     if (Sa == 1)

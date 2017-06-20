@@ -11,26 +11,17 @@
 #include   "functions.cpp"
 #include   "transition.cpp"
 using namespace std;
-/* #define SIMPLE_SPRNG		 simple interface                         */
-// #include "sprng.h"
-/* SPRNG header file     see NSCA random number generator   library   *** */
+
 #include <gsl/gsl_rng.h>
-/*
-#define SEED 985456376
-*/
-
-
-/* Declaration of external/global variables and pointers    ****************** */
 
 char  datafilename[80];
 FILE   *stream;
 
-//int rng_seed;
-//int rho_top_init[4], obs_top[4];
 /* For the definition of gamma, dgamma etc, please
    see our JCP paper  */
-//double BETA1,BETA2, GAMMA1, GAMMA2;
 
+
+/* Monte Carlo Sampling ----------------------------------------------------- */
 
 int t_strobe, Nblock = 1024; /* t_strobe is the frequency at which results for slices are printed,
                                  Nblock is the size of sub-ensembles */
@@ -38,12 +29,12 @@ int t_strobe, Nblock = 1024; /* t_strobe is the frequency at which results for s
 
 int monte(int NN_sample,double *x, double *p){
 
-    int i, j,k,flag,sl;
-    double y,l;
+    int i, j, k, flag, sl;
+    double y, l;
 
     /* This section calls slice algorithm, and prints results  */
     for (i = 0; i < N_slice; i++){
-        abszsum1[i] = 0.0;
+        abszsum1[i]  = 0.0;
         argzsum1[i]  = 0.0;
         habszsum1[i] = 0.0;
         hargzsum1[i] = 0.0;
@@ -56,7 +47,7 @@ int monte(int NN_sample,double *x, double *p){
                 l  = 1.0/(i+1);
                 stream = fopen(datafilename,"a");
                 for (k = 0; k < N_slice; k++)
-                    if ( ((k+1) % t_strobe) == 0) {
+                    if (((k+1) % t_strobe) == 0) {
                         for (j = 0; j <=(Ncut+1); j++){
                             fprintf(stream,"%d %lf %d %lf %lf %lf %lf  %lf %lf %lf %lf%.6lf\n", i+1, Dt*(k+1), j, (abszsum1[k])*l, (argzsum1[k])*l, realsum[k][j]*l, imagsum[k][j]*l,(habszsum1[k])*l, (hargzsum1[k])*l, hrealsum[k][j]*l, himagsum[k][j]*l, hist[k][j]*l );
                             printf("%d %lf %d %lf %lf %lf %lf %lf %lf %lf %lf %.6lf\n", i+1, Dt*(k+1), j, (abszsum1[k])*l, (argzsum1[k])*l,realsum[k][j]*l ,imagsum[k][j]*l,(habszsum1[k])*l, (hargzsum1[k])*l, hrealsum[k][j]*l, himagsum[k][j]*l, hist[k][j]*l);              }
@@ -66,23 +57,26 @@ int monte(int NN_sample,double *x, double *p){
         }
     }
     return 0;
-
 }
 
+/* Main ------------------------------------------------- */
 
 
 int MAX_tr;
 int *jump;
 double *b, beta, *mu, *dtdtm;
 //int  rngstreamnum, nrngstreams, *rngstream;
+//int rng_seed;
+//int rho_top_init[4], obs_top[4];
+//double BETA1,BETA2, GAMMA1, GAMMA2;
 
 int main(int argc, char *argv[]){
 
-    double z,sum1,sum2,z2,sum3,sum5,xx,Dt;
+    double z, sum1, sum2, z2, sum3, sum5, xx, Dt;
     double tw[4][4];
-    double  dt, t1, *R1,  *v,x;
-    double w_max, eta,reS, imS,prod,Ndev,yy,T;
-    int  i,Sa,j, Nsteps,  N_space,ii,k,init_seed,ppp, N0,stepnum, error_flag= 0;
+    double  dt, t1, *R1, *v, x;
+    double w_max, eta, reS, imS, prod, Ndev, yy, T;
+    int  i, Sa, j, Nsteps, N_space, ii, k, init_seed, ppp, N0, stepnum, error_flag = 0;
     int i1, i2;
     t_strobe = 1;   /* Print out the results for every t_strobe slice  */
 
@@ -102,6 +96,8 @@ int main(int argc, char *argv[]){
     scanf("%s%d%d%d%lf%lf%d%d%lf%lf%lf%lf%lf", datafilename, &N_bath, &N_slice, &Ncut, &timestep, &T, &init_seed, &Nsample, &w_max, &eta, &beta, &delta, &ppower);
     reS = 0.0; imS = 0.0;
     MAX_tr = 2;
+
+
     /* Allocate memory ----------------------------------------------------- */
     R1 = (double *)malloc((N_bath)*sizeof(double));
     v =  (double *)malloc((N_bath)*sizeof(double));
@@ -226,8 +222,6 @@ int main(int argc, char *argv[]){
             for (j =0; j <= (Ncut+1);j++){
                 printf("%lf   %lf  %lf  %lf  %lf  %lf  %lf    %.6lf\n", Dt*(i+1), (abszsum1[i]/Nsample), (argzsum1[i]/Nsample), realsum[i][j]/Nsample,  (habszsum1[i]/Nsample), (hargzsum1[i]/Nsample), hrealsum[i][j]/Nsample,  1.0*hist[i][j]/Nsample);
                 fprintf(stream,"%lf   %lf  %lf  %lf  %lf  %lf  %lf %.6lf\n", Dt*(i+1), (abszsum1[i]/Nsample), (argzsum1[i]/Nsample), realsum[i][j]/Nsample, (habszsum1[i]/Nsample), (hargzsum1[i]/Nsample), hrealsum[i][j]/Nsample, 1.0*hist[i][j]/Nsample);
-
-
             }
     fclose(stream);
 
@@ -246,5 +240,4 @@ int main(int argc, char *argv[]){
     free(mu);free(sig); free(mww);free(dtdtm); free(meann);
 
     return 0;
-
 }
