@@ -26,10 +26,10 @@ void integ_step(double *r, double *v, double dt, int Sa){
         r[i] += dt*v[i] + y*f[i];
     y = 0.5*dt;
     for (i = 0; i < N_bath; i++)
-        v[i] +=   y*f[i];
+        v[i] += y*f[i];
     force[Sa](r);
     for (i = 0; i < N_bath; i++)
-        v[i] +=   y*f[i];
+        v[i] += y*f[i];
 }
 
 
@@ -47,7 +47,6 @@ void bath_para(double eta, double w_max){
         m[i] = 1.0;
         w[i] = -log( 1-(i+1)*w_0 );
         c[i] = sqrt(eta*w_0*m[i])*w[i];
-
     }
 }
 
@@ -71,7 +70,7 @@ double U( double *r,double *v, int Sa, double t){
         dt = t/Nsteps;
     }
 
-    if ( (Sa == 0) || (Sa == 3)){
+    if ( (Sa == 0) || (Sa == 3) ){
         for (i = 0; i < Nsteps; i++){
             integ_step(r , v,  dt, Sa);
         }
@@ -83,7 +82,7 @@ double U( double *r,double *v, int Sa, double t){
         phase += dE(r);
     }
     phase -=dE(r)/2;
-    phase*= dt;
+    phase *= dt;
 
     if (Sa == 1)
         phase *= -1.0;
@@ -103,11 +102,11 @@ double alpha,BETA1,BETA2, GAMMA1, GAMMA2,*b;
 
 double (*phi)(double*, double*, int);
 
-double (*dens_init[4])(double *, double *, int );
+double (*dens_init[4])(double *, double *, int);
 
-double (*obs[4])(double *, double *, int );
+double (*obs[4])(double *, double *, int);
 
-double (*obs1[4])(double *, double *, int );
+double (*obs1[4])(double *, double *, int);
 
 double (* www[6][4][4])();
 
@@ -118,11 +117,11 @@ double sina, cosa, cosb1,cosb2, sinb1,sinb2,cosg1,cosg2,sing1,sing2, ppower,de;
 int  density(double *x,double *p){
 
 
-    int l,i,j,SS0,SS1,SS2,SS3, abc,NNjmp =0,nojumpflag = -1,signPdotdhat,adiabat_flag = -1,zcut=0;
-    double phase0 = 0.0,phase1 = 0.0,xx,phase3=0,yy;
-    double p0,p1,p2,p3,ap0,ap1,ap2,ap3,wtemp = 1.0;
-    double dn1,dn2,dn3,bb,sqrbb,sqrbb2,sqrbbb,BETA,GAMMA,pbb1,pbb2,pbb3,ABSZ,ARGZ;
-    complex<double> z = 1.0,oldz;
+    int l, i, j, SS0, SS1, SS2, SS3, abc, NNjmp = 0, nojumpflag = -1, signPdotdhat, adiabat_flag = -1, zcut=0;
+    double phase0 = 0.0, phase1 = 0.0, xx,phase3=0, yy;
+    double p0, p1, p2, p3, ap0, ap1, ap2, ap3, wtemp = 1.0;
+    double dn1, dn2, dn3, bb, sqrbb, sqrbb2, sqrbbb, BETA, GAMMA, pbb1, pbb2, pbb3, ABSZ, ARGZ;
+    complex<double> z = 1.0, oldz;
 
     Dt = TSLICE;
     /* Note - sign for propagating observables  */
@@ -155,10 +154,10 @@ int  density(double *x,double *p){
     // ____________________________________________________________________
 
     adiabat_flag = -1;
-    for (l =0; l < N_slice; l++){
-        SS0   = SS1;
+    for (l = 0; l < N_slice; l++){
+        SS0 = SS1;
         // phase0 = 0.0;
-        phase0 =  U(RR[0],PP[0],SS0,Dt/2);
+        phase0 =  U(RR[0],PP[0],SS0,Dt*0.5);
         z *= exp(I*phase0);
 
         //  compute Q1   choos
@@ -184,99 +183,103 @@ int  density(double *x,double *p){
             Pdotdhat +=  PP[0][i]*dhat[i];
         }
         alpha = Pdotdhat*abs_d*Dt;
-        if (NNjmp >= Ncut)
+        if (NNjmp >= Ncut){
             adiabat_flag = 1;
-        if ( adiabat_flag == 1){
+        }
+        if (adiabat_flag == 1){
             nojumpflag = 1;
         }
 
         // 21-8-05 remove 1/p.d exit condition
-        if ( 2 > 1){
-            signPdotdhat = (Pdotdhat < 0 ? -1 : 1);
-            Pdotdhat = fabs(Pdotdhat);
-            for (i = 0; i < N_bath; i++)
-                Pperp[i] =  PP[0][i] - signPdotdhat*Pdotdhat*dhat[i];
-            alpha *= 2.0;
-            sina = sin(alpha); cosa = cos(alpha);
-
-            ap0 = fabs(p0 = ( (www[1][SS0][0]() < -7775.0) ? 0.0 :  www[0][SS0][0]()));
-            ap1 = fabs(p1 = ( (www[1][SS0][1]() < -7775.0) ? 0.0 :  www[0][SS0][1]()));
-            ap2 = fabs(p2 = ( (www[1][SS0][2]() < -7775.0) ? 0.0 :  www[0][SS0][2]()));
-            ap3 = fabs(p3 = ( (www[1][SS0][3]() < -7775.0) ? 0.0 :  www[0][SS0][3]()));
-            dn2 =  ap0 + ap1 + ap2  + ap3;
-
-            xx = dn2*(gsl_rng_uniform (rr));   // choosing matrix elements
-            // printf(" oldz  real %lf imag %lf\t", real(z), imag(z));
-            oldz = z;
-            SS2 = SS1;
-            if (xx < ap0){
-                SS1 = 0;
-                z *= p0*dn2/ap0;
-            }
-            else if (xx < ap0 + ap1){
-                SS1 = 1;
-                z *= p1*dn2/ap1;
-            }
-            else if (xx < ap0 + ap1 + ap2){
-                SS1 = 2;
-                z *= p2*dn2/ap2;
-            }
-            else {
-                SS1 = 3;
-                z *= p3*dn2/ap3;
-            }
-            if (SS0 != SS1)
-                NNjmp++;
-            if (NNjmp > Ncut)
-                return 0;
-
-            //  if  ((abs(z) > ppower) || (abs(z) >  4.5*pow(1.5,Dt*l))){
-            // 14-09-2006
-            if  ((abs(z) > ppower)){
-                if (SS0 != SS1)
-                    NNjmp--;
-                SS1 = SS2;
-                z = oldz*www[0][SS0][SS1]();
-                // z = oldz;
-                // goto jmp;
-            }
-            if  (www[1][SS0][SS1]() != 9999.0)
-                for (i = 0; i < N_bath; i++)
-                    PP[0][i] = Pperp[i] + signPdotdhat*www[1][SS0][SS1]()*dhat[i];
-
+        signPdotdhat = (Pdotdhat < 0 ? -1 : 1);
+        Pdotdhat = fabs(Pdotdhat);
+        for (i = 0; i < N_bath; i++){
+            Pperp[i] =  PP[0][i] - signPdotdhat*Pdotdhat*dhat[i];
         }
+        alpha *= 2.0;
+        sina = sin(alpha); cosa = cos(alpha);
+        //# p0, etc. are probabilities of undergoing a transition
+        //# "Weird condition is probably to avoid some obscure error"
+        ap0 = fabs(p0 = ( (www[1][SS0][0]() < -7775.0) ? 0.0 :  www[0][SS0][0]()));
+        ap1 = fabs(p1 = ( (www[1][SS0][1]() < -7775.0) ? 0.0 :  www[0][SS0][1]()));
+        ap2 = fabs(p2 = ( (www[1][SS0][2]() < -7775.0) ? 0.0 :  www[0][SS0][2]()));
+        ap3 = fabs(p3 = ( (www[1][SS0][3]() < -7775.0) ? 0.0 :  www[0][SS0][3]()));
+        dn2 =  ap0 + ap1 + ap2  + ap3;
 
+        xx = dn2*(gsl_rng_uniform (rr));   // choosing matrix elements
+        // printf(" oldz  real %lf imag %lf\t", real(z), imag(z));
+        oldz = z;
+        SS2 = SS1;
+        //# Calculating which matrix elements we are going to use.
+        if (xx < ap0){
+            SS1 = 0;
+            z *= p0*dn2/ap0;
+        }
+        else if (xx < ap0 + ap1){
+            SS1 = 1;
+            z *= p1*dn2/ap1;
+        }
+        else if (xx < ap0 + ap1 + ap2){
+            SS1 = 2;
+            z *= p2*dn2/ap2;
+        }
+        else {
+            SS1 = 3;
+            z *= p3*dn2/ap3;
+        }
+        if (SS0 != SS1){
+            NNjmp++;
+        }
+        //# This stops the algorithim calculating if the number of jumps is greater than a cut off value: as a high order perturbation is needed for a big NNjmp (high order
+        //# perturbation is bad, v.noisy)
+        if (NNjmp > Ncut){
+            return 0;
+        }
+        //  if  ((abs(z) > ppower) || (abs(z) >  4.5*pow(1.5,Dt*l))){
+        // 14-09-2006
+        if  ((abs(z) > ppower)){
+            if (SS0 != SS1){
+                NNjmp--;
+            }
+            SS1 = SS2;
+            z = oldz*www[0][SS0][SS1]();
+            // z = oldz;
+            // goto jmp;
+        }
+        if  (www[1][SS0][SS1]() != 9999.0){
+            for (i = 0; i < N_bath; i++){
+                PP[0][i] = Pperp[i] + signPdotdhat*www[1][SS0][SS1]()*dhat[i];
+            }
+        }
         //  printf("zzz %lf %d  %lf\n", l*Dt, NNjmp, abs(z));
 
         jmp:
-        phase0 = U(RR[0],PP[0],SS1,Dt/2);
+        phase0 = U(RR[0],PP[0],SS1,Dt*0.5);
         z *= exp(I*phase0);
         phi = obs[SS1];
 
 
-        abszsum0[l]  = real(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
-        argzsum0[l]  = imag(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
+        abszsum0[l] = real(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
+        argzsum0[l] = imag(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
         ABSZ = abs(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
         ARGZ = arg(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
-        printf("zzzz %d %d %d %lf %lf\t %lf %lf\t %lf %lf\t %lf %lf\n", l, NNjmp, SS1, real(z), imag(z),  abs(z), arg(z), ABSZ, ARGZ, alpha, de);
-        realsum[l][NNjmp] +=  abszsum0[l];
-        imagsum[l][NNjmp] +=  argzsum0[l];
+        printf("zzzz %d %d %d %lf %lf\t %lf %lf\t %lf %lf\t %lf %lf\n", l, NNjmp, SS1, real(z), imag(z), abs(z), arg(z), ABSZ, ARGZ, alpha, de);
+        realsum[l][NNjmp] += abszsum0[l];
+        imagsum[l][NNjmp] += argzsum0[l];
         abszsum1[l] += abszsum0[l];
         argzsum1[l] += argzsum0[l];
 
         hist[l][NNjmp]++;
 
         phi = obs1[SS1];
-        habszsum0[l]  = real(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
-        hargzsum0[l]  = imag(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
-        hrealsum[l][NNjmp] +=  habszsum0[l];
-        himagsum[l][NNjmp] +=  hargzsum0[l];
+        habszsum0[l] = real(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
+        hargzsum0[l] = imag(z*phi(RR[0],PP[0],0)*dens_init[SS3](x,p,1));
+        hrealsum[l][NNjmp] += habszsum0[l];
+        himagsum[l][NNjmp] += hargzsum0[l];
         habszsum1[l] += habszsum0[l];
         hargzsum1[l] += hargzsum0[l];
 
     }
-
-
 
     return 0;
 
@@ -374,6 +377,7 @@ double wwa0_33(){
 
 //         W_{a 1}
 
+    
 double wwa1_00(){
     return 9999.0;
 }
@@ -434,11 +438,8 @@ double wwa1_21(){
 }
 
 double wwa1_22(){
-
     double x;
-
     return 9999.0;
-
 }
 
 double wwa1_23(){
@@ -446,13 +447,12 @@ double wwa1_23(){
     double x;
 
     x = Pdotdhat*Pdotdhat - de;
-    if (x <= 0)
+    if (x <= 0){
         return -7777.0;
-    else
+    }
+    else{
         return sqrt(x);
-
-
-
+    }
 }
 
 double wwa1_30(){
@@ -461,10 +461,7 @@ double wwa1_30(){
 
     x = Pdotdhat*Pdotdhat + 2.0*de;
     return sqrt(x);
-
-
 }
-
 
 double wwa1_31(){
 
@@ -472,10 +469,7 @@ double wwa1_31(){
 
     x = Pdotdhat*Pdotdhat + de;
     return sqrt(x);
-
-
 }
-
 
 double wwa1_32(){
 
@@ -483,21 +477,14 @@ double wwa1_32(){
 
     x = Pdotdhat*Pdotdhat + de;
     return sqrt(x);
-
-
-
-
 }
-
 
 double wwa1_33(){
 
     return 9999.0;
-
-
-
 }
 
+    
 //   W_{a2}
 
 /* _____________________________________________  */
@@ -508,9 +495,7 @@ double wwa2_00(){
 
     x = sina -  sinb2;
     return x;
-
 }
-
 
 double wwa2_01(){
 
@@ -518,7 +503,6 @@ double wwa2_01(){
 
     x = cosb2;
     return x;
-
 }
 
 double wwa2_02(){
@@ -527,9 +511,7 @@ double wwa2_02(){
 
     x = cosb2;
     return x;
-
 }
-
 
 double wwa2_03(){
 
@@ -537,9 +519,7 @@ double wwa2_03(){
 
     x = sina  + sinb2;
     return  x;
-
 }
-
 
 double wwa2_10(){
 
@@ -547,16 +527,13 @@ double wwa2_10(){
 
     x = cosa;
     return x;
-
 }
 
 double wwa2_11(){
 
     double x;
 
-
     return 0.0;
-
 }
 
 double wwa2_12(){
@@ -564,7 +541,6 @@ double wwa2_12(){
     double x;
 
     return 0.0;
-
 }
 
 double wwa2_13(){
@@ -573,10 +549,7 @@ double wwa2_13(){
 
     x = cosa;
     return x;
-
 }
-
-
 
 double wwa2_20(){
 
@@ -584,16 +557,13 @@ double wwa2_20(){
 
     x = cosa;
     return x;
-
 }
 
 double wwa2_21(){
 
     double x;
 
-
     return 0.0;
-
 }
 
 double wwa2_22(){
@@ -601,7 +571,6 @@ double wwa2_22(){
     double x;
 
     return 0.0;
-
 }
 
 double wwa2_23(){
@@ -610,7 +579,6 @@ double wwa2_23(){
 
     x = cosa;
     return x;
-
 }
 
 double wwa2_30(){
@@ -619,9 +587,7 @@ double wwa2_30(){
 
     x = sina +  sinb2;
     return  -x;
-
 }
-
 
 double wwa2_31(){
 
@@ -629,9 +595,7 @@ double wwa2_31(){
 
     x = cosb2;
     return x;
-
 }
-
 
 double wwa2_32(){
 
@@ -639,9 +603,7 @@ double wwa2_32(){
 
     x = cosb2;
     return x;
-
 }
-
 
 double wwa2_33(){
 
@@ -649,18 +611,18 @@ double wwa2_33(){
 
     x = -sina  + sinb2;
     return  x;
-
 }
 
+    
 //   Wb0
 
+    
 double wwb0_00(){
 
     double x;
 
     x = cosa;
     return x*x;
-
 }
 
 double wwb0_01(){
@@ -669,7 +631,6 @@ double wwb0_01(){
 
     x = cosa*sina;
     return x;
-
 }
 
 double wwb0_02(){
@@ -678,7 +639,6 @@ double wwb0_02(){
 
     x =  cosa*sina;
     return x;
-
 }
 
 double wwb0_03(){
@@ -687,7 +647,6 @@ double wwb0_03(){
 
     x = sina;
     return 1.0 + x*x;
-
 }
 
 double wwb0_10(){
@@ -696,7 +655,6 @@ double wwb0_10(){
 
     x = -cosa*sina;
     return x;
-
 }
 
 double wwb0_11(){
@@ -705,7 +663,6 @@ double wwb0_11(){
 
     x = cosa;
     return x*x;
-
 }
 
 double wwb0_12(){
@@ -714,9 +671,7 @@ double wwb0_12(){
 
     x = cosa;
     return x*x;
-
 }
-
 
 double wwb0_13(){
 
@@ -724,9 +679,7 @@ double wwb0_13(){
 
     x = cosa*sina;
     return -x;
-
 }
-
 
 double wwb0_20(){
 
@@ -734,19 +687,14 @@ double wwb0_20(){
 
     x = cosa*sina;
     return -x;
-
 }
-
-
 
 double wwb0_21(){
 
     double x;
 
-
     x = cosa;
     return x*x;
-
 }
 
 double wwb0_22(){
@@ -755,9 +703,7 @@ double wwb0_22(){
 
     x = cosa;
     return x*x;
-
 }
-
 
 double wwb0_23(){
 
@@ -765,9 +711,7 @@ double wwb0_23(){
 
     x = cosa*sina;
     return  x;
-
 }
-
 
 double wwb0_30(){
 
@@ -775,7 +719,6 @@ double wwb0_30(){
 
     x = sina;
     return 1.0 + x*x;
-
 }
 
 double wwb0_31(){
@@ -784,7 +727,6 @@ double wwb0_31(){
 
     x = cosa*sina;
     return -x;
-
 }
 
 double wwb0_32(){
@@ -793,9 +735,7 @@ double wwb0_32(){
 
     x = -cosa*sina;
     return x;
-
 }
-
 
 double wwb0_33(){
 
@@ -803,9 +743,7 @@ double wwb0_33(){
 
     x = cosa;
     return  x*x;
-
 }
-
 
 
 //  W_{b1}
@@ -817,9 +755,7 @@ double wwb1_00(){
 
     x = 1.0 - sina*sing1;
     return x;
-
 }
-
 
 double wwb1_01(){
 
@@ -827,7 +763,6 @@ double wwb1_01(){
 
     x = cosg1*sina;
     return x;
-
 }
 
 double wwb1_02(){
@@ -836,9 +771,7 @@ double wwb1_02(){
 
     x = cosg1*sina;
     return x;
-
 }
-
 
 double wwb1_03(){
 
@@ -846,9 +779,7 @@ double wwb1_03(){
 
     x = 1.0 + sina*sing1;
     return x;
-
 }
-
 
 double wwb1_10(){
 
@@ -856,7 +787,6 @@ double wwb1_10(){
 
     x = cosa*sing1;
     return -x;
-
 }
 
 double wwb1_11(){
@@ -864,10 +794,7 @@ double wwb1_11(){
     double x;
 
     x = cosa*cosg1;
-
-
     return x;
-
 }
 
 double wwb1_12(){
@@ -875,11 +802,7 @@ double wwb1_12(){
     double x;
 
     x = cosa*cosg1;
-
-
     return x;
-
-
 }
 
 double wwb1_13(){
@@ -888,12 +811,7 @@ double wwb1_13(){
 
     x = cosa*sing1;
     return x;
-
-
-
 }
-
-
 
 double wwb1_20(){
 
@@ -901,7 +819,6 @@ double wwb1_20(){
 
     x = cosa*sing1;
     return -x;
-
 }
 
 double wwb1_21(){
@@ -909,10 +826,7 @@ double wwb1_21(){
     double x;
 
     x = cosa*cosg1;
-
-
     return x;
-
 }
 
 double wwb1_22(){
@@ -920,11 +834,7 @@ double wwb1_22(){
     double x;
 
     x = cosa*cosg1;
-
-
     return x;
-
-
 }
 
 double wwb1_23(){
@@ -933,9 +843,6 @@ double wwb1_23(){
 
     x = cosa*sing1;
     return x;
-
-
-
 }
 
 double wwb1_30(){
@@ -944,9 +851,7 @@ double wwb1_30(){
 
     x = 1.0 + sina*sing1;
     return x;
-
 }
-
 
 double wwb1_31(){
 
@@ -954,7 +859,6 @@ double wwb1_31(){
 
     x = -cosg1*sina;
     return x;
-
 }
 
 double wwb1_32(){
@@ -963,9 +867,7 @@ double wwb1_32(){
 
     x = -cosg1*sina;
     return x;
-
 }
-
 
 double wwb1_33(){
 
@@ -973,7 +875,6 @@ double wwb1_33(){
 
     x = 1.0 - sina*sing1;
     return x;
-
 }
 
 
@@ -986,9 +887,7 @@ double wwb2_00(){
 
     x = 1.0 - sina*sing2;
     return x;
-
 }
-
 
 double wwb2_01(){
 
@@ -996,7 +895,6 @@ double wwb2_01(){
 
     x = cosg2*sina;
     return x;
-
 }
 
 double wwb2_02(){
@@ -1005,9 +903,7 @@ double wwb2_02(){
 
     x = cosg2*sina;
     return x;
-
 }
-
 
 double wwb2_03(){
 
@@ -1015,9 +911,7 @@ double wwb2_03(){
 
     x = 1.0 + sina*sing2;
     return x;
-
 }
-
 
 double wwb2_10(){
 
@@ -1025,7 +919,6 @@ double wwb2_10(){
 
     x = cosa*sing2;
     return -x;
-
 }
 
 double wwb2_11(){
@@ -1033,10 +926,7 @@ double wwb2_11(){
     double x;
 
     x = cosa*cosg2;
-
-
     return x;
-
 }
 
 double wwb2_12(){
@@ -1044,11 +934,7 @@ double wwb2_12(){
     double x;
 
     x = cosa*cosg2;
-
-
     return x;
-
-
 }
 
 double wwb2_13(){
@@ -1057,12 +943,7 @@ double wwb2_13(){
 
     x = cosa*sing2;
     return x;
-
-
-
 }
-
-
 
 double wwb2_20(){
 
@@ -1070,7 +951,6 @@ double wwb2_20(){
 
     x = cosa*sing2;
     return -x;
-
 }
 
 double wwb2_21(){
@@ -1078,10 +958,7 @@ double wwb2_21(){
     double x;
 
     x = cosa*cosg2;
-
-
     return x;
-
 }
 
 double wwb2_22(){
@@ -1089,11 +966,7 @@ double wwb2_22(){
     double x;
 
     x = cosa*cosg2;
-
-
     return x;
-
-
 }
 
 double wwb2_23(){
@@ -1102,9 +975,6 @@ double wwb2_23(){
 
     x = cosa*sing2;
     return x;
-
-
-
 }
 
 double wwb2_30(){
@@ -1113,9 +983,7 @@ double wwb2_30(){
 
     x = 1.0 + sina*sing2;
     return x;
-
 }
-
 
 double wwb2_31(){
 
@@ -1123,7 +991,6 @@ double wwb2_31(){
 
     x = cosg2*sina;
     return -x;
-
 }
 
 double wwb2_32(){
@@ -1132,9 +999,7 @@ double wwb2_32(){
 
     x = cosg2*sina;
     return -x;
-
 }
-
 
 double wwb2_33(){
 
@@ -1142,7 +1007,6 @@ double wwb2_33(){
 
     x = 1.0 - sina*sing2;
     return x;
-
 }
 
 
@@ -1261,7 +1125,4 @@ void setwww(){
     www[5][3][1] = wwb2_31;
     www[5][3][2] = wwb2_32;
     www[5][3][3] = wwb2_33;
-
-
-
 }
