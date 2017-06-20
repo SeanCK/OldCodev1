@@ -14,7 +14,7 @@ using namespace std;
 
 
 
-
+// comment
 int  density(double *x,double *p){
 
 
