@@ -216,7 +216,7 @@ int main(int argc, char *argv[]){
         }
     monte(Nsample,R1,v);
     stream = fopen(datafilename,"a");
-    fprintf(stream,"dt %lf T %lf Nsample\n", timestep, T, Nsample);
+    fprintf(stream,"dt %lf T %lf Nsample %d\n", timestep, T, Nsample);
     for (i = 0; i < N_slice; i++)
         if (((i+1)% t_strobe) == 0)
             for (j =0; j <= (Ncut+1);j++){
