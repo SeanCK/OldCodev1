@@ -143,7 +143,6 @@ int  density(double *x,double *p){ //density evolution
         if (www[1][SS0][SS1]() != 9999.0)
             for (i = 0; i < N_bath; i++)
                 PP[0][i] = Pperp[i] + signPdotdhat * www[1][SS0][SS1]() * dhat[i];
-    }
 
     //  printf("zzz %lf %d  %lf\n", l*Dt, NNjmp, abs(z));
 
@@ -171,6 +170,6 @@ int  density(double *x,double *p){ //density evolution
     himagsum[l][NNjmp] +=  hargzsum0[l];
     habszsum1[l] += habszsum0[l];
     hargzsum1[l] += hargzsum0[l];
-
+    }
 return 0;
 }
